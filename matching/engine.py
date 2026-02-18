@@ -33,12 +33,14 @@ def run_matching(df1, df2):
 
     for i, j, score in matches:
         matched_rows.append({
+            "status": "Match",
             "ledger_index": i,
             "bank_index": j,
             "ledger_row": df1.loc[i].to_dict(),
             "bank_row": df2.loc[j].to_dict(),
             "name_similarity": score
         })
+    
 
     return {
         "matches": matched_rows,

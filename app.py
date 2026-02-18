@@ -23,10 +23,10 @@ if file1 and file2:
     df2 = clean_dataframe(df2_raw, map2, file2.name)
 
     st.subheader("Normalized Bank Data")
-    st.dataframe(df1.head())
+    st.dataframe(df1)
 
     st.subheader("Normalized Ledger Data")
-    st.dataframe(df2.head())
+    st.dataframe(df2)
 
     results = run_matching(df1, df2)
 
@@ -43,12 +43,16 @@ if file1 and file2:
 
         for m in results["matches"]:
             row = {
+                "Status": m["status"],
                 "Ledger Name": m["ledger_row"]["normalized_name"],
                 "Bank Name": m["bank_row"]["normalized_name"],
-                "Amount": m["ledger_row"]["amount"],
-                "Ledger Date": m["ledger_row"]["date"].date(),
-                "Bank Date": m["bank_row"]["date"].date(),
-                "Name Similarity": m["name_similarity"]
+                "Ledger Row No.": m["ledger_index"],
+                "Bank Row No.": m["bank_index"],
+                "Ledger Amount": m["ledger_row"]["amount"],
+                "Bank Amount": m["bank_row"]["amount"],
+                "Ledger Date": m["ledger_row"]["date"],
+                "Bank Date": m["bank_row"]["date"],
+                "Name Similarity": str(int(m["name_similarity"])) + "%"
             }
             matched_display.append(row)
 
@@ -58,7 +62,9 @@ if file1 and file2:
     # ===== SHOW UNMATCHED =====
 
     st.subheader("Unmatched Bank Transactions")
+    st.write(f"Total Mis-matches Found: {len(results["unmatched_df1"])}")
     st.dataframe(results["unmatched_df1"])
 
     st.subheader("Unmatched Ledger Transactions")
+    st.write(f"Total Mis-matches Found: {len(results["unmatched_df2"])}")
     st.dataframe(results["unmatched_df2"])
