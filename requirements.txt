@@ -4,4 +4,3 @@ openpyxl
 python-dateutil
 rapidfuzz
 pdfplumber
-re
