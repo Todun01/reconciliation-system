@@ -48,12 +48,12 @@ def row_match(df1, df2):
 
             # Name similarity
             similarity = fuzz.token_sort_ratio(
-                bank_row["normalized_name"],
-                ledger_row["normalized_name"]
+                bank_row["name"].lower(),
+                ledger_row["description"].lower()
             )
 
             # Only check similarity now (amount & date already validated)
-            if similarity >= 45:
+            if similarity >= 90 or ledger_row["name"].lower() in bank_row["description"].lower():
                 matches.append((i, j, similarity))
                 df1.at[i, "matched"] = True
                 df2.at[j, "matched"] = True

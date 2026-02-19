@@ -2,8 +2,6 @@ import pandas as pd
 import re
 from dateutil.parser import parse
 from normalization.amount_handler import build_amount_column
-from normalization.name_extractor import extract_name
-from normalization.name_normalizer import normalize_name
 
 
 def clean_date(value):
@@ -59,12 +57,11 @@ def clean_dataframe(df, mapping, source_name):
         
     if "name" in mapping and mapping["name"] in df.columns:
         # Ledger case → use name column directly
-        cleaned["extracted_name"] = df[mapping["name"]].astype(str)
+        cleaned["name"] = df[mapping["name"]].astype(str)
+        
     else:
         # Bank case → extract from description
-        cleaned["extracted_name"] = cleaned["description"].apply(extract_name)
-
-    cleaned["normalized_name"] = cleaned["extracted_name"].apply(normalize_name)
+        cleaned["name"] = ""
 
 
     # Reference

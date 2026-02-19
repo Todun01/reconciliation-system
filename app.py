@@ -18,20 +18,20 @@ if file1 and file2:
 
     map1 = map_columns(df1_raw)
     map2 = map_columns(df2_raw)
-
+    st.write(map1)
     df1 = clean_dataframe(df1_raw, map1, file1.name)
     df2 = clean_dataframe(df2_raw, map2, file2.name)
 
-    st.subheader("Normalized Bank Data")
+    st.subheader("Bank Data")
     st.dataframe(df1)
 
-    st.subheader("Normalized Ledger Data")
+    st.subheader("Ledger Data")
     st.dataframe(df2)
 
     results = run_matching(df1, df2)
 
     st.subheader("Match Summary")
-    st.write("Total Matches Found:", len(results["matches"]))
+    st.write("Total Potential Matches Found:", len(results["matches"]))
 
 
     # ===== SHOW MATCHED ROWS =====
@@ -44,13 +44,13 @@ if file1 and file2:
         for m in results["matches"]:
             row = {
                 "Status": m["status"],
-                "Ledger Name": m["ledger_row"]["normalized_name"],
-                "Bank Name": m["bank_row"]["normalized_name"],
+                "Ledger Name": m["ledger_row"]["name"],
+                "Bank Name": m["bank_row"]["name"],
                 "Ledger Row No.": m["ledger_index"],
                 "Bank Row No.": m["bank_index"],
                 "Ledger Amount": m["ledger_row"]["amount"],
                 "Bank Amount": m["bank_row"]["amount"],
-                "Ledger Date": m["ledger_row"]["date"],
+                "Ledger Date": m["ledger_row"]["date"].date(),
                 "Bank Date": m["bank_row"]["date"],
                 "Name Similarity": str(int(m["name_similarity"])) + "%"
             }
@@ -62,9 +62,9 @@ if file1 and file2:
     # ===== SHOW UNMATCHED =====
 
     st.subheader("Unmatched Bank Transactions")
-    st.write(f"Total Mis-matches Found: {len(results["unmatched_df1"])}")
+    st.write(f"Total Potential Mis-matches Found: {len(results["unmatched_df1"])}")
     st.dataframe(results["unmatched_df1"])
 
     st.subheader("Unmatched Ledger Transactions")
-    st.write(f"Total Mis-matches Found: {len(results["unmatched_df2"])}")
+    st.write(f"Total Potential Mis-matches Found: {len(results["unmatched_df2"])}")
     st.dataframe(results["unmatched_df2"])
