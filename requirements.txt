@@ -1,0 +1,7 @@
+streamlit
+pandas
+openpyxl
+python-dateutil
+rapidfuzz
+pdfplumber
+re
