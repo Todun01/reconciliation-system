@@ -18,7 +18,7 @@ if file1 and file2:
 
     map1 = map_columns(df1_raw)
     map2 = map_columns(df2_raw)
-    st.write(map1)
+
     df1 = clean_dataframe(df1_raw, map1, file1.name)
     df2 = clean_dataframe(df2_raw, map2, file2.name)
 

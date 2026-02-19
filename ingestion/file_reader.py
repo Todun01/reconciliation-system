@@ -7,31 +7,13 @@ def read_file(uploaded_file):
 
     if file_name.endswith(".csv"):
         df = pd.read_csv(uploaded_file)
-        df.columns = (
-            df.columns
-            .astype(str)
-            .str.strip()
-            .str.lower()
-        )
 
     elif file_name.endswith((".xlsx", ".xls")):
         df = pd.read_excel(uploaded_file, engine="openpyxl")
-        df.columns = (
-            df.columns
-            .astype(str)
-            .str.strip()
-            .str.lower()
-        )
 
 
     elif file_name.endswith(".pdf"):
         df = extract_pdf_tables(uploaded_file)
-        df.columns = (
-            df.columns
-            .astype(str)
-            .str.strip()
-            .str.lower()
-        )
 
     else:
         raise ValueError("Unsupported file format")
