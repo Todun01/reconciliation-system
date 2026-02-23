@@ -13,7 +13,7 @@ def dates_match(ledger_dt, bank_dt):
         return True
 
     # Case 2: Ledger late-night → next day bank
-    if ledger_dt.hour >= 23 and bank_day == ledger_day + timedelta(days=1):
+    if bank_dt.hour >= 23 and ledger_day == bank_day + timedelta(days=1):
         return True
 
     return False
@@ -40,10 +40,12 @@ def row_match(df1, df2):
 
             # Amount must match
             if bank_row["amount"] != ledger_row["amount"]:
+                # print(f"{bank_row["amount"]} did not match {ledger_row["amount"]}")
                 continue
 
             # Smart date matching (pass correct order: ledger, bank)
             if not dates_match(ledger_row["date"], bank_row["date"]):
+                print("date not matched")
                 continue
 
             # Name similarity
@@ -51,9 +53,9 @@ def row_match(df1, df2):
                 bank_row["name"].lower(),
                 ledger_row["description"].lower()
             )
-
+            print(f"similarity for {bank_row["name"].lower()} and {ledger_row["description"].lower()} is {similarity}")
             # Only check similarity now (amount & date already validated)
-            if similarity >= 90 or ledger_row["name"].lower() in bank_row["description"].lower():
+            if similarity >= 30 or bank_row["name"].lower() in ledger_row["description"].lower():
                 matches.append((i, j, similarity))
                 df1.at[i, "matched"] = True
                 df2.at[j, "matched"] = True

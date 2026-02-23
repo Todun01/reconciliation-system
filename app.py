@@ -8,27 +8,27 @@ from matching.engine import run_matching
 
 st.title("Reconciliation System")
 
-file1 = st.file_uploader("Upload Bank Statement", type=["csv","xlsx","pdf"])
-file2 = st.file_uploader("Upload Ledger File", type=["csv","xlsx","pdf"])
+bank = st.file_uploader("Upload Bank Statement", type=["csv","xlsx","pdf"])
+ledger = st.file_uploader("Upload Ledger File", type=["csv","xlsx","pdf"])
 
-if file1 and file2:
+if bank and ledger:
 
-    df1_raw = read_file(file1)
-    df2_raw = read_file(file2)
+    bank_raw = read_file(bank)
+    ledger_raw = read_file(ledger)
 
-    map1 = map_columns(df1_raw)
-    map2 = map_columns(df2_raw)
+    bank_map = map_columns(bank_raw)
+    ledger_map = map_columns(ledger_raw)
 
-    df1 = clean_dataframe(df1_raw, map1, file1.name)
-    df2 = clean_dataframe(df2_raw, map2, file2.name)
+    bank_df = clean_dataframe(bank_raw, bank_map, bank.name)
+    ledger_df = clean_dataframe(ledger_raw, ledger_map, ledger.name)
 
     st.subheader("Bank Data")
-    st.dataframe(df1)
+    st.dataframe(bank_df)
 
     st.subheader("Ledger Data")
-    st.dataframe(df2)
+    st.dataframe(ledger_df)
 
-    results = run_matching(df1, df2)
+    results = run_matching(bank_df, ledger_df)
 
     st.subheader("Match Summary")
     st.write("Total Potential Matches Found:", len(results["matches"]))
@@ -44,7 +44,7 @@ if file1 and file2:
         for m in results["matches"]:
             row = {
                 "Status": m["status"],
-                "Ledger Name": m["ledger_row"]["name"],
+                "Ledger Name": m["ledger_row"]["description"],
                 "Bank Name": m["bank_row"]["name"],
                 "Ledger Row No.": m["ledger_index"],
                 "Bank Row No.": m["bank_index"],

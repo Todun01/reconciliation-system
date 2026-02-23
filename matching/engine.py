@@ -19,8 +19,8 @@ def dates_match(ledger_date, bank_date):
         return True
 
     # Late night carry-over rule
-    if ledger_date.hour >= 23:
-        if ledger_day + timedelta(days=1) == bank_day:
+    if bank_date.hour >= 23:
+        if bank_day + timedelta(days=1) == ledger_day:
             return True
 
     return False
@@ -34,10 +34,10 @@ def run_matching(df1, df2):
     for i, j, score in matches:
         matched_rows.append({
             "status": "Match",
-            "ledger_index": i,
-            "bank_index": j,
-            "ledger_row": df1.loc[i].to_dict(),
-            "bank_row": df2.loc[j].to_dict(),
+            "bank_index": i,
+            "ledger_index": j,
+            "bank_row": df1.loc[i].to_dict(),
+            "ledger_row": df2.loc[j].to_dict(),
             "name_similarity": score
         })
     
