@@ -1,2 +1,5 @@
 .env
 venv/
+ingestion/__pycache__
+matching/__pycache__
+normalization/__pycache__
