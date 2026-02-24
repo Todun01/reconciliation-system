@@ -6,3 +6,4 @@ rapidfuzz
 pdfplumber
 scipy
 openai
+dotenv
