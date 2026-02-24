@@ -10,15 +10,21 @@ def get_openai_key():
         load_dotenv()
         return os.getenv("OPENAI_API_KEY")
     
+client = OpenAI(api_key=get_openai_key()) 
+# Global cache dictionary
+_name_cache = {}
+
 def extract_name(text):
 
+    
     if not text or len(text) < 5:
         return ""
+    
+    text = str(text).strip()
 
-    # --------------------------
-    # CLOUD MODE → OpenAI
-    # --------------------------
-    client = OpenAI(api_key=get_openai_key())
+    # Check cache first
+    if text in _name_cache:
+        return _name_cache[text]
 
     prompt = f"""
         Extract ONLY the customer's full name from this bank transaction text.
@@ -38,5 +44,10 @@ def extract_name(text):
         temperature=0
     )
 
-    return response.choices[0].message.content.strip()
+    name = response.choices[0].message.content.strip()
+
+    # Store in cache
+    _name_cache[text] = name
+
+    return name
 
