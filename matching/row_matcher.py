@@ -45,17 +45,22 @@ def row_match(df1, df2):
 
             # Smart date matching (pass correct order: ledger, bank)
             if not dates_match(ledger_row["date"], bank_row["date"]):
-                print("date not matched")
+                # print("date not matched")
                 continue
 
             # Name similarity
             similarity = fuzz.token_sort_ratio(
                 bank_row["name"].lower(),
-                ledger_row["description"].lower()
+                ledger_row["extracted_name"].lower()
             )
-            print(f"similarity for {bank_row["name"].lower()} and {ledger_row["description"].lower()} is {similarity}")
+            bank_words = bank_row["name"].lower().split()
+            ledger_words = ledger_row["extracted_name"].lower().split()
+            similarity_index = 80
+            if len(bank_words) > 2 or len(ledger_words) > 2:
+                similarity_index = 70
+            # print(f"similarity for {bank_row["name"].lower()} and {ledger_row["description"].lower()} is {similarity}")
             # Only check similarity now (amount & date already validated)
-            if similarity >= 30 or bank_row["name"].lower() in ledger_row["description"].lower():
+            if similarity >= similarity_index:
                 matches.append((i, j, similarity))
                 df1.at[i, "matched"] = True
                 df2.at[j, "matched"] = True

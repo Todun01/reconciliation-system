@@ -44,7 +44,7 @@ if bank and ledger:
         for m in results["matches"]:
             row = {
                 "Status": m["status"],
-                "Ledger Name": m["ledger_row"]["description"],
+                "Ledger Name": m["ledger_row"]["extracted_name"],
                 "Bank Name": m["bank_row"]["name"],
                 "Ledger Row No.": m["ledger_index"],
                 "Bank Row No.": m["bank_index"],

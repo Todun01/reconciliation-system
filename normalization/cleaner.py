@@ -2,6 +2,7 @@ import pandas as pd
 import re
 from dateutil.parser import parse
 from normalization.amount_handler import build_amount_column
+from normalization.name_extractor import extract_name
 
 
 def clean_date(value):
@@ -52,9 +53,13 @@ def clean_dataframe(df, mapping, source_name):
 
     if "description" in mapping and mapping["description"] in df.columns:
         cleaned["description"] = df[mapping["description"]].astype(str)
+        # extract name with spacy
+        cleaned["extracted_name"] = cleaned["description"].apply(extract_name)
     else:
         cleaned["description"] = ""
-        
+
+    
+
     if "name" in mapping and mapping["name"] in df.columns:
         # Ledger case → use name column directly
         cleaned["name"] = df[mapping["name"]].astype(str)
