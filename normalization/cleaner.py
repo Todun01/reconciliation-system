@@ -36,18 +36,27 @@ def clean_amount(value):
         return 0.0
 
 
-def clean_dataframe(df, mapping, source_name):
+def clean_dataframe(df, mapping, source_name, amount_column_override=None):
     cleaned = pd.DataFrame()
     # SAFE DATE HANDLING
     if "date" in mapping and mapping["date"] in df.columns:
         cleaned["date"] = df[mapping["date"]].apply(clean_date)
-    else:
-        cleaned["date"] = None
 
     # Build Amount Column safely
-    df = build_amount_column(df, mapping)
-    cleaned["amount"] = df[mapping["amount"]].apply(clean_amount).abs()
+    if amount_column_override:
+        # User-selected ledger column
+        cleaned["amount"] = df[amount_column_override].apply(clean_amount).abs()
 
+    else:
+        # Default bank logic (existing behavior)
+        df = build_amount_column(df, mapping)
+        cleaned["amount"] = df[mapping["amount"]].apply(clean_amount).abs() 
+
+    # if "credit" in mapping and mapping["credit"] in df.columns:
+    #     cleaned["credit"] = df[mapping["credit"]].apply(clean_amount).abs()
+    
+    # if "debit" in mapping and mapping["debit"] in df.columns:
+    #     cleaned["debit"] = df[mapping["debit"]].apply(clean_amount).abs()
 
     # Description
     # Extract and normalize customer name
@@ -55,39 +64,38 @@ def clean_dataframe(df, mapping, source_name):
     if "description" in mapping and mapping["description"] in df.columns:
         cleaned["description"] = df[mapping["description"]].astype(str)
 
-        cleaned = remove_non_transactions(cleaned)
-        # Use first row as structure sample
-        sample_row = cleaned["description"].iloc[0]
-        print(f"Sample description for regex generation: {sample_row}")
-        # Generate regex ONCE
-        pattern = generate_regex_from_sample(sample_row)
-
-        print(f"Generated regex pattern: {pattern}")
-        if not validate_pattern(pattern):
-            raise ValueError("Generated regex is not Python-compatible.")
-
-        cleaned["extracted_name"] = cleaned["description"].apply(
-        lambda x: extract_name(x, pattern)
-        )
     else:
-        cleaned["description"] = ""
-
-    
+        cleaned["description"] = None
 
     if "name" in mapping and mapping["name"] in df.columns:
         # Ledger case → use name column directly
         cleaned["name"] = df[mapping["name"]].astype(str)
-        
+    
     else:
-        # Bank case → extract from description
-        cleaned["name"] = ""
+        cleaned["name"] = None
 
 
     # Reference
     if "reference" in mapping and mapping["reference"] in df.columns:
         cleaned["reference"] = df[mapping["reference"]].astype(str)
-    else:
-        cleaned["reference"] = ""
+    
+    else: 
+        cleaned["reference"] = None
 
     cleaned["source_file"] = source_name
+    cleaned = remove_non_transactions(cleaned)
+
+    # Use first row as structure sample
+    sample_row = cleaned["description"].iloc[0]
+    # print(f"Sample description for regex generation: {sample_row}")
+    # Generate regex ONCE
+    pattern = generate_regex_from_sample(sample_row)
+
+    # print(f"Generated regex pattern: {pattern}")
+    if not validate_pattern(pattern):
+        raise ValueError("Generated regex is not Python-compatible.")
+
+    cleaned["extracted_name"] = cleaned["description"].apply(
+    lambda x: extract_name(x, pattern)
+    )
     return cleaned

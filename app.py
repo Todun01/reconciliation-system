@@ -19,8 +19,28 @@ if bank and ledger:
     bank_map = map_columns(bank_raw)
     ledger_map = map_columns(ledger_raw)
 
+    ledger_amount_column = None
+
+    # Identify ledger amount options
+    ledger_options = []
+
+    if "debit" in ledger_map:
+        ledger_options.append(ledger_map["debit"])
+
+    if "credit" in ledger_map:
+        ledger_options.append(ledger_map["credit"])
+
+    # Show selector ONLY if multiple options exist
+    if len(ledger_options) > 1:
+        ledger_amount_column = st.selectbox(
+            "Select Ledger Amount Column",
+            ledger_options
+        )
+    elif len(ledger_options) == 1:
+        ledger_amount_column = ledger_options[0]
+
     bank_df = clean_dataframe(bank_raw, bank_map, bank.name)
-    ledger_df = clean_dataframe(ledger_raw, ledger_map, ledger.name)
+    ledger_df = clean_dataframe(ledger_raw, ledger_map, ledger.name, amount_column_override=ledger_amount_column)
 
     st.subheader("Bank Data")
     st.dataframe(bank_df)
