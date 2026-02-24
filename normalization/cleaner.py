@@ -53,8 +53,20 @@ def clean_dataframe(df, mapping, source_name):
 
     if "description" in mapping and mapping["description"] in df.columns:
         cleaned["description"] = df[mapping["description"]].astype(str)
-        # extract name with spacy
-        cleaned["extracted_name"] = cleaned["description"].apply(extract_name)
+
+        # Only extract if there is no direct name column
+        if "name" not in mapping or mapping["name"] not in df.columns:
+
+            unique_descriptions = cleaned["description"].dropna().unique()
+
+            name_map = {}
+            for desc in unique_descriptions:
+                name_map[desc] = extract_name(desc)
+
+            cleaned["extracted_name"] = cleaned["description"].map(name_map)
+
+        else:
+            cleaned["extracted_name"] = ""
     else:
         cleaned["description"] = ""
 
