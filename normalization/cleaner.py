@@ -3,7 +3,9 @@ import re
 from dateutil.parser import parse
 from normalization.amount_handler import build_amount_column
 from normalization.name_extractor import extract_name
-
+from normalization.name_extractor import generate_regex_from_sample
+from normalization.name_extractor import validate_pattern
+from normalization.filters import remove_non_transactions
 
 def clean_date(value):
     try:
@@ -36,7 +38,6 @@ def clean_amount(value):
 
 def clean_dataframe(df, mapping, source_name):
     cleaned = pd.DataFrame()
-
     # SAFE DATE HANDLING
     if "date" in mapping and mapping["date"] in df.columns:
         cleaned["date"] = df[mapping["date"]].apply(clean_date)
@@ -54,19 +55,20 @@ def clean_dataframe(df, mapping, source_name):
     if "description" in mapping and mapping["description"] in df.columns:
         cleaned["description"] = df[mapping["description"]].astype(str)
 
-        # Only extract if there is no direct name column
-        if "name" not in mapping or mapping["name"] not in df.columns:
+        cleaned = remove_non_transactions(cleaned)
+        # Use first row as structure sample
+        sample_row = cleaned["description"].iloc[0]
+        print(f"Sample description for regex generation: {sample_row}")
+        # Generate regex ONCE
+        pattern = generate_regex_from_sample(sample_row)
 
-            unique_descriptions = cleaned["description"].dropna().unique()
+        print(f"Generated regex pattern: {pattern}")
+        if not validate_pattern(pattern):
+            raise ValueError("Generated regex is not Python-compatible.")
 
-            name_map = {}
-            for desc in unique_descriptions:
-                name_map[desc] = extract_name(desc)
-
-            cleaned["extracted_name"] = cleaned["description"].map(name_map)
-
-        else:
-            cleaned["extracted_name"] = ""
+        cleaned["extracted_name"] = cleaned["description"].apply(
+        lambda x: extract_name(x, pattern)
+        )
     else:
         cleaned["description"] = ""
 
@@ -88,8 +90,4 @@ def clean_dataframe(df, mapping, source_name):
         cleaned["reference"] = ""
 
     cleaned["source_file"] = source_name
-
-    from normalization.filters import remove_non_transactions
-
-    cleaned = remove_non_transactions(cleaned)
     return cleaned

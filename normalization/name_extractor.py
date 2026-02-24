@@ -2,6 +2,7 @@ import os
 from openai import OpenAI
 import streamlit as st
 from dotenv import load_dotenv
+import re 
 
 def get_openai_key():
     try:
@@ -11,43 +12,52 @@ def get_openai_key():
         return os.getenv("OPENAI_API_KEY")
     
 client = OpenAI(api_key=get_openai_key()) 
-# Global cache dictionary
-_name_cache = {}
-
-def extract_name(text):
-
-    
-    if not text or len(text) < 5:
-        return ""
-    
-    text = str(text).strip()
-
-    # Check cache first
-    if text in _name_cache:
-        return _name_cache[text]
+def generate_regex_from_sample(sample_text):
+    """
+    Uses AI once to generate a regex pattern that extracts
+    customer name from transaction description.
+    Returns raw regex string.
+    """
 
     prompt = f"""
-        Extract ONLY the customer's full name from this bank transaction text.
+You are a Python regex expert.
 
-        Rules:
-        - Return ONLY the name
-        - No explanations
-        - No extra words
+Given this transaction receipt description:
 
-        Text:
-        {text}
-        """
+{sample_text}
+
+Observe the text and accurately identify the customer name within the transaction receipt description.
+Generate a Python regex pattern that accurately extracts ONLY the customer full name.
+
+STRICT RULES:
+- DO NOT include r''
+- DO NOT include quotes
+- DO NOT include backticks
+- DO NOT include markdown
+- Return ONLY the regex pattern string.
+- Must contain exactly one capturing group.
+"""
 
     response = client.chat.completions.create(
-        model="gpt-4o-mini",   # fast + cheap
+        model="gpt-4o-mini",
         messages=[{"role": "user", "content": prompt}],
         temperature=0
     )
 
-    name = response.choices[0].message.content.strip()
+    pattern = response.choices[0].message.content.strip()
 
-    # Store in cache
-    _name_cache[text] = name
+    return pattern
 
-    return name
+def validate_pattern(pattern):
+    try:
+        re.compile(pattern)
+        return True
+    except re.error:
+        return False
+    
+def extract_name(text, pattern):
+    match = re.search(pattern, str(text))
+    if match:
+        return match.group(1).strip()
+    return ""
 
