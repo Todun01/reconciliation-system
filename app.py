@@ -39,52 +39,55 @@ if bank and ledger:
     elif len(ledger_options) == 1:
         ledger_amount_column = ledger_options[0]
 
-    bank_df = clean_dataframe(bank_raw, bank_map, bank.name)
-    ledger_df = clean_dataframe(ledger_raw, ledger_map, ledger.name, amount_column_override=ledger_amount_column)
+    run = st.button("Run Reconciliation")
+    if run:
+        bank_df = clean_dataframe(bank_raw, bank_map, bank.name)
+        ledger_df = clean_dataframe(ledger_raw, ledger_map, ledger.name, amount_column_override=ledger_amount_column)
 
-    st.subheader("Bank Data")
-    st.dataframe(bank_df)
+        st.subheader("Bank Data")
+        st.dataframe(bank_df)
 
-    st.subheader("Ledger Data")
-    st.dataframe(ledger_df)
+        st.subheader("Ledger Data")
+        st.dataframe(ledger_df)
 
-    results = run_matching(bank_df, ledger_df)
+        results = run_matching(bank_df, ledger_df)
 
-    st.subheader("Match Summary")
-    st.write("Total Potential Matches Found:", len(results["matches"]))
-
-
-    # ===== SHOW MATCHED ROWS =====
-
-    if results["matches"]:
-        st.subheader("Matched Transactions")
-
-        matched_display = []
-
-        for m in results["matches"]:
-            row = {
-                "Status": m["status"],
-                "Ledger Name": m["ledger_row"]["extracted_name"],
-                "Bank Name": m["bank_row"]["name"],
-                "Ledger Row No.": m["ledger_index"],
-                "Bank Row No.": m["bank_index"],
-                "Ledger Amount": m["ledger_row"]["amount"],
-                "Bank Amount": m["bank_row"]["amount"],
-                "Ledger Date": m["ledger_row"]["date"].date(),
-                "Bank Date": m["bank_row"]["date"],
-                "Name Similarity": str(int(m["name_similarity"])) + "%"
-            }
-            matched_display.append(row)
-
-        st.dataframe(matched_display)
+        st.subheader("Match Summary")
+        st.write("Total Potential Matches Found:", len(results["matches"]))
 
 
-    # ===== SHOW UNMATCHED =====
+        # ===== SHOW MATCHED ROWS =====
 
-    st.subheader("Unmatched Bank Transactions")
-    st.write(f"Total Potential Mis-matches Found: {len(results["unmatched_df1"])}")
-    st.dataframe(results["unmatched_df1"])
+        if results["matches"]:
+            st.subheader("Matched Transactions")
 
-    st.subheader("Unmatched Ledger Transactions")
-    st.write(f"Total Potential Mis-matches Found: {len(results["unmatched_df2"])}")
-    st.dataframe(results["unmatched_df2"])
+            matched_display = []
+
+            for m in results["matches"]:
+                row = {
+                    "Status": m["status"],
+                    "Ledger Name": m["ledger_row"]["extracted_name"],
+                    "Bank Name": m["bank_row"]["name"],
+                    "Ledger Row No.": m["ledger_index"],
+                    "Bank Row No.": m["bank_index"],
+                    "Ledger Amount": m["ledger_row"]["amount"],
+                    "Bank Amount": m["bank_row"]["amount"],
+                    "Ledger Date": m["ledger_row"]["date"].date(),
+                    "Bank Date": m["bank_row"]["date"],
+                    "Name Similarity": str(int(m["name_similarity"])) + "%"
+                }
+                matched_display.append(row)
+
+            st.dataframe(matched_display)
+
+
+        # ===== SHOW UNMATCHED =====
+
+        st.subheader("Unmatched Bank Transactions")
+        st.write(f"Total Potential Mis-matches Found: {len(results["unmatched_df1"])}")
+        st.dataframe(results["unmatched_df1"])
+
+        st.subheader("Unmatched Ledger Transactions")
+        st.write(f"Total Potential Mis-matches Found: {len(results["unmatched_df2"])}")
+        st.dataframe(results["unmatched_df2"])
+
