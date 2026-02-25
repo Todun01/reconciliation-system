@@ -4,6 +4,7 @@ from normalization.cleaner import clean_dataframe
 
 from ingestion.file_reader import read_file
 from matching.engine import run_matching
+from utils.amount_selector import build_amount_config
 
 
 st.title("Reconciliation System")
@@ -18,31 +19,16 @@ if bank and ledger:
 
     bank_map = map_columns(bank_raw)
     ledger_map = map_columns(ledger_raw)
-
-    ledger_amount_column = None
-
-    # Identify ledger amount options
-    ledger_options = []
-
-    if "debit" in ledger_map:
-        ledger_options.append(ledger_map["debit"])
-
-    if "credit" in ledger_map:
-        ledger_options.append(ledger_map["credit"])
-
-    # Show selector ONLY if multiple options exist
-    if len(ledger_options) > 1:
-        ledger_amount_column = st.selectbox(
-            "Select Ledger Amount Column",
-            ledger_options
-        )
-    elif len(ledger_options) == 1:
-        ledger_amount_column = ledger_options[0]
+    st.write("Detected Bank Columns:", bank_map)
+    st.write("Detected Ledger Columns:", ledger_map)
+    bank_config = build_amount_config("Bank Statement", bank_map, st)
+    ledger_config = build_amount_config("Ledger File", ledger_map, st)
 
     run = st.button("Run Reconciliation")
     if run:
-        bank_df = clean_dataframe(bank_raw, bank_map, bank.name)
-        ledger_df = clean_dataframe(ledger_raw, ledger_map, ledger.name, amount_column_override=ledger_amount_column)
+        # print("running..")
+        bank_df = clean_dataframe(bank_raw, bank_map, bank.name, bank_config)
+        ledger_df = clean_dataframe(ledger_raw, ledger_map, ledger.name, ledger_config)
 
         st.subheader("Bank Data")
         st.dataframe(bank_df)

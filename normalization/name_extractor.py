@@ -24,24 +24,28 @@ You are a Python regex expert.
 
 Given this transaction receipt description:
 
+
+
 {sample_text}
 
+
+
 Observe the text and accurately identify the customer name within the transaction receipt description.
-Generate a Python regex pattern that accurately extracts ONLY the customer full name.
+Generate a Python regex pattern that accurately extracts ONLY the customer full name, and that would still extract if hyphenated. 
 
 STRICT RULES:
 - DO NOT include r''
 - DO NOT include quotes
 - DO NOT include backticks
 - DO NOT include markdown
-- Return ONLY the regex pattern string.
+- Return ONLY the regex pattern string. 
 - Must contain exactly one capturing group.
 """
 
     response = client.chat.completions.create(
-        model="gpt-4o-mini",
+        model="gpt-5-nano",
         messages=[{"role": "user", "content": prompt}],
-        temperature=0
+        temperature=1
     )
 
     pattern = response.choices[0].message.content.strip()
