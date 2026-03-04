@@ -125,6 +125,7 @@ def run_matching(
 
     bank_df = bank_df.copy()
     ledger_df = ledger_df.copy()
+    used_ledger_indices = set()
 
     # -----------------------------------
     # DETERMINE MATCHING MODE
@@ -196,6 +197,8 @@ def run_matching(
 
         for ledger_index, ledger_row in candidates.iterrows():
 
+            if ledger_index in used_ledger_indices:
+                continue
             if not use_token_logic:
                 # -----------------------------
                 # LIGHT FUZZY MODE
@@ -243,6 +246,7 @@ def run_matching(
                     best_score = score
                     best_match = (ledger_index, ledger_row)
 
+
         # -----------------------------------
         # SAVE BEST MATCH
         # -----------------------------------
@@ -259,7 +263,7 @@ def run_matching(
                 "bank_row": bank_row,
                 "name_similarity": best_score
             })
-
+            used_ledger_indices.add(ledger_index)
             unmatched_bank_indices.discard(bank_index)
             unmatched_ledger_indices.discard(ledger_index)
 
