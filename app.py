@@ -5,6 +5,7 @@ from normalization.cleaner import clean_dataframe
 from ingestion.file_reader import read_file
 from matching.engine import run_matching
 from utils.amount_selector import build_amount_config
+from utils.name_selector import name_selector
 
 
 st.title("Reconciliation System")
@@ -21,9 +22,13 @@ if bank and ledger:
     ledger_map = map_columns(ledger_raw)
     st.write("Detected Bank Columns:", bank_map)
     st.write("Detected Ledger Columns:", ledger_map)
+    bank_text_column = name_selector("Bank Statement", bank_map, st)
+    ledger_text_column = name_selector("Ledger File", ledger_map, st)
+
     bank_config = build_amount_config("Bank Statement", bank_map, st)
     ledger_config = build_amount_config("Ledger File", ledger_map, st)
 
+    
     run = st.button("Run Reconciliation")
     if run:
         # print("running..")
@@ -36,7 +41,13 @@ if bank and ledger:
         st.subheader("Ledger Data")
         st.dataframe(ledger_df)
 
-        results = run_matching(bank_df, ledger_df)
+        results = run_matching(
+            bank_df,
+            ledger_df,
+            bank_text_column=bank_text_column,
+            ledger_text_column=ledger_text_column,
+            date_tolerance=2
+        )
 
         st.subheader("Match Summary")
         st.write("Total Potential Matches Found:", len(results["matches"]))
@@ -52,8 +63,8 @@ if bank and ledger:
             for m in results["matches"]:
                 row = {
                     "Status": m["status"],
-                    "Ledger Name": m["ledger_row"]["extracted_name"],
-                    "Bank Name": m["bank_row"]["name"],
+                    "Ledger Name": m["ledger_row"][ledger_text_column],
+                    "Bank Name": m["bank_row"][bank_text_column],
                     "Ledger Row No.": m["ledger_index"],
                     "Bank Row No.": m["bank_index"],
                     "Ledger Amount": m["ledger_row"]["amount"],
