@@ -145,18 +145,18 @@ def run_matching(
     if use_token_logic:
         # Heavy cleaning for token logic
         if bank_check and not ledger_check:
-            bank_df["text_repr"] = bank_df[bank_text_column].apply(light_clean)
-            ledger_df["text_repr"] = ledger_df[ledger_text_column].apply(heavy_tokenize)
+            bank_df["text_tokens"] = bank_df[bank_text_column].apply(light_clean)
+            ledger_df["text_tokens"] = ledger_df[ledger_text_column].apply(heavy_tokenize)
         elif ledger_check and not bank_check:
-            bank_df["text_repr"] = bank_df[bank_text_column].apply(heavy_tokenize)
-            ledger_df["text_repr"] = ledger_df[ledger_text_column].apply(light_clean)
+            bank_df["text_tokens"] = bank_df[bank_text_column].apply(heavy_tokenize)
+            ledger_df["text_tokens"] = ledger_df[ledger_text_column].apply(light_clean)
         else:
-            bank_df["text_repr"] = bank_df[bank_text_column].apply(heavy_tokenize)
-            ledger_df["text_repr"] = ledger_df[ledger_text_column].apply(heavy_tokenize)
+            bank_df["text_tokens"] = bank_df[bank_text_column].apply(heavy_tokenize)
+            ledger_df["text_tokens"] = ledger_df[ledger_text_column].apply(heavy_tokenize)
     else:
         # Light cleaning for direct fuzzy
-        bank_df["text_repr"] = bank_df[bank_text_column].apply(light_clean)
-        ledger_df["text_repr"] = ledger_df[ledger_text_column].apply(light_clean)
+        bank_df["text_tokens"] = bank_df[bank_text_column].apply(light_clean)
+        ledger_df["text_tokens"] = ledger_df[ledger_text_column].apply(light_clean)
 
     # -----------------------------------
     # GROUP LEDGER BY AMOUNT
@@ -204,8 +204,8 @@ def run_matching(
                 # LIGHT FUZZY MODE
                 # -----------------------------
 
-                bank_text = bank_row["text_repr"]
-                ledger_text = ledger_row["text_repr"]
+                bank_text = bank_row["text_tokens"]
+                ledger_text = ledger_row["text_tokens"]
 
                 similarity = fuzz.ratio(bank_text, ledger_text)
 
@@ -218,8 +218,8 @@ def run_matching(
                 # TOKEN OVERLAP MODE
                 # -----------------------------
 
-                bank_tokens = bank_row["text_repr"]
-                ledger_tokens = ledger_row["text_repr"]
+                bank_tokens = bank_row["text_tokens"]
+                ledger_tokens = ledger_row["text_tokens"]
 
                 overlap = bank_tokens & ledger_tokens
 
