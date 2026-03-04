@@ -77,7 +77,7 @@ def light_clean(text):
         return ""
 
     text = text.lower()
-    text = text.replace("-", "").replace(",", " ")
+    text = text.replace("-", " ").replace(",", " ")
     text = re.sub(r"[^a-z\s]", " ", text)
 
     tokens = text.split()
