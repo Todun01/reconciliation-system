@@ -4,8 +4,8 @@ COLUMN_PATTERNS = {
     "name": ["customer (fullname)", "recipient name", "recipient a/c name"],
     "date": ["value date", "transfer date", "transaction date", "difference"],
     "amount": ["amount", "amt"],
-    "debit": ["debit", "DR", "withdrawal"],
-    "credit": ["credit", "CR", "deposit"],
+    "debit": ["debit", "DR", "withdrawal", "withdrawals"],
+    "credit": ["credit", "CR", "deposit", "deposits"],
     "description": ["description", "narration", "details", "remarks"],
     "reference": ["reference", "ref", "transaction id"]
 }
