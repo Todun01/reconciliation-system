@@ -2,7 +2,7 @@ from rapidfuzz import process
 
 COLUMN_PATTERNS = {
     "name": ["customer (fullname)", "recipient name", "recipient a/c name"],
-    "date": ["value date", "transfer date", "transaction date", "date", "difference"],
+    "date": ["value date", "transfer date", "transaction date", "difference"],
     "amount": ["amount", "amt"],
     "debit": ["debit", "DR", "withdrawal"],
     "credit": ["credit", "CR", "deposit"],
