@@ -4,15 +4,15 @@ COLUMN_PATTERNS = {
     "name": ["customer (fullname)", "recipient name", "recipient a/c name"],
     "date": ["value date", "transfer date", "transaction date", "difference"],
     "amount": ["amount", "amt"],
-    "debit": ["debit", "DR", "withdrawal", "withdrawals"],
-    "credit": ["credit", "CR", "deposit", "deposits"],
+    "debit": ["debit", "DR", "withdrawal"],
+    "credit": ["credit", "CR", "deposit"],
     "description": ["description", "narration", "details", "remarks"],
     "reference": ["reference", "ref", "transaction id"]
 }
 
 def find_best_match(patterns, columns):
     for pattern in patterns:
-        match = process.extractOne(pattern, columns, score_cutoff=80)
+        match = process.extractOne(pattern, columns, score_cutoff=70)
         if match:
             return match[0]
     return None
