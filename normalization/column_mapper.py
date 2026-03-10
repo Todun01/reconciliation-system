@@ -12,21 +12,19 @@ COLUMN_PATTERNS = {
 
 def find_best_match(patterns, columns):
     for pattern in patterns:
-        match = process.extractOne(pattern, columns, score_cutoff=70)
+        match = process.extractOne(pattern, columns, score_cutoff=80)
         if match:
             return match[0]
     return None
 
 def map_columns(df):
     mapped = {}
+    lower_cols = [c.lower() for c in df.columns]
 
-    # Create lowercase lookup map
-    col_map = {col.lower(): col for col in df.columns}
-    lower_cols = list(col_map.keys())
-
-    for standard_col, patterns in COLUMN_PATTERNS.items():
-        match = find_best_match(patterns, lower_cols)
-        if match:
-            mapped[standard_col] = col_map[match]  # return ORIGINAL name
+    for col in lower_cols:
+        for standard_col, patterns in COLUMN_PATTERNS.items():
+            match = process.extractOne(col, patterns, score_cutoff=80)
+            if match:
+                mapped[standard_col] = df.columns[lower_cols.index(col)]
 
     return mapped
