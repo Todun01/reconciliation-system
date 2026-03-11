@@ -65,8 +65,8 @@ BUZZWORDS = {
     "received", "sent", "incoming", "outgoing",
     "salary", "wage", "payout", "instant", "settlement",
     "outward", "inward", "nibss", "purchase", "sale", "merchant", "ecommerce",
-    "account", "electronic", "nip","inflow", "outflow", "cr", "dr",
-    "WD", "vat", "naira", "client", "frm", "ac", "zib"
+    "account", "electronic", "nip", "inflow", "outflow", "cr", "dr",
+    "WD", "vat", "naira", "client", "frm", "ac", "zib", "meristem", "stockbrokers"
 }
 
 # -----------------------------------
