@@ -56,7 +56,7 @@ from rapidfuzz import fuzz
 
 BUZZWORDS = {
     "deposit", "payment", "transfer", "ngn",
-    "ref", "reference", "trx", "txn",
+    "ref", "reference", "trx", "txn", "trf",
     "credit", "debit", "for", "to", "from", 
     "echannel", "pos", "atm", "online", "bank", "card",
     "receipt", "invoice", "bill", "utility", "subscription",
@@ -65,7 +65,8 @@ BUZZWORDS = {
     "received", "sent", "incoming", "outgoing",
     "salary", "wage", "payout", "instant", "settlement",
     "outward", "inward", "nibss", "purchase", "sale", "merchant", "ecommerce",
-    "account", "electronic"
+    "account", "electronic", "nip","inflow", "outflow", "cr", "dr",
+    "WD", "vat", "naira", "client", "frm", "ac", "zib"
 }
 
 # -----------------------------------
@@ -77,7 +78,7 @@ def light_clean(text):
         return ""
 
     text = text.lower()
-    text = text.replace("-", " ").replace(",", " ")
+    text = text.replace("-", " ").replace(",", " ").replace("/", "")
     text = re.sub(r"[^a-z\s]", " ", text)
 
     tokens = text.split()
