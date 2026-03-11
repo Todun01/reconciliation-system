@@ -66,9 +66,17 @@ BUZZWORDS = {
     "salary", "wage", "payout", "instant", "settlement",
     "outward", "inward", "nibss", "purchase", "sale", "merchant", "ecommerce",
     "account", "electronic", "nip", "inflow", "outflow", "cr", "dr",
-    "WD", "vat", "naira", "client", "frm", "ac", "zib", "meristem", "stockbrokers"
+    "WD", "vat", "naira", "client", "frm", "ac", "zib", "meristem", "limited"
 }
-
+GROUP_BUZZWORDS = {
+    "MSBL": {"stockbrokers"},
+    "MWML": {"wealth", "management", "wealthmanagement"},
+    "Trustees": {"trustees"},
+    "Family Office": {"family", "office", "familyoffice"},
+    "MRPSL": {"registrars", "probate", "services"},
+    "Finance": {"finance"},
+    "Capital": {"capital"},
+}
 # -----------------------------------
 # LIGHT CLEAN (FOR NAME COLUMNS)
 # -----------------------------------
@@ -90,7 +98,8 @@ def light_clean(text):
 # HEAVY TOKEN CLEAN (FOR DESCRIPTION)
 # -----------------------------------
 
-def heavy_tokenize(text):
+def heavy_tokenize(text, group=None):
+    
     if not isinstance(text, str):
         return set()
 
@@ -99,10 +108,15 @@ def heavy_tokenize(text):
     text = re.sub(r"[^a-z\s]", " ", text)
 
     tokens = text.split()
+    buzzwords = BUZZWORDS.copy()
+
+    if group or group != "None":
+        extra_buzzwords = GROUP_BUZZWORDS.get(group, set())
+        buzzwords = buzzwords.union(extra_buzzwords)
 
     tokens = [
         t for t in tokens
-        if len(t) > 2 and t not in BUZZWORDS
+        if len(t) > 2 and t not in buzzwords
     ]
 
     return set(tokens)
@@ -115,9 +129,10 @@ def heavy_tokenize(text):
 def run_matching(
     bank_df,
     ledger_df,
+    group,
     bank_text_column,
     ledger_text_column,
-    date_tolerance=2
+    date_tolerance=2,
 ):
 
     matches = []
@@ -147,13 +162,21 @@ def run_matching(
         # Heavy cleaning for token logic
         if bank_check and not ledger_check:
             bank_df["text_tokens"] = bank_df[bank_text_column].apply(light_clean)
-            ledger_df["text_tokens"] = ledger_df[ledger_text_column].apply(heavy_tokenize)
+            ledger_df["text_tokens"] = ledger_df[ledger_text_column].apply(
+                lambda x: heavy_tokenize(x, group)
+            )
         elif ledger_check and not bank_check:
-            bank_df["text_tokens"] = bank_df[bank_text_column].apply(heavy_tokenize)
+            bank_df["text_tokens"] = bank_df[bank_text_column].apply(
+                lambda x: heavy_tokenize(x, group)
+            )
             ledger_df["text_tokens"] = ledger_df[ledger_text_column].apply(light_clean)
         else:
-            bank_df["text_tokens"] = bank_df[bank_text_column].apply(heavy_tokenize)
-            ledger_df["text_tokens"] = ledger_df[ledger_text_column].apply(heavy_tokenize)
+            bank_df["text_tokens"] = bank_df[bank_text_column].apply(
+                lambda x: heavy_tokenize(x, group)
+            )
+            ledger_df["text_tokens"] = ledger_df[ledger_text_column].apply(
+                lambda x: heavy_tokenize(x, group)
+            )
     else:
         # Light cleaning for direct fuzzy
         bank_df["text_tokens"] = bank_df[bank_text_column].apply(light_clean)

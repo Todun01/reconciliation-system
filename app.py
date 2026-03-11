@@ -22,6 +22,10 @@ if bank and ledger:
     ledger_map = map_columns(ledger_raw)
     st.write("Detected Bank Columns:", bank_map)
     st.write("Detected Ledger Columns:", ledger_map)
+    group = st.selectbox(
+        "Select Group",
+        ["None", "MSBL", "MWML", "Trustees", "Family Office", "Finance", "Capital", "MRPSL"]
+    )
     bank_text_column = name_selector("Bank Statement", bank_map, st)
     ledger_text_column = name_selector("Ledger File", ledger_map, st)
 
@@ -44,9 +48,10 @@ if bank and ledger:
         results = run_matching(
             bank_df,
             ledger_df,
+            group=group,
             bank_text_column=bank_text_column,
             ledger_text_column=ledger_text_column,
-            date_tolerance=2
+            date_tolerance=2,
         )
 
         st.subheader("Match Summary")
