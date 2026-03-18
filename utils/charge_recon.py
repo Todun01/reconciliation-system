@@ -355,83 +355,141 @@ def assign_period(date, periods_df):
     ]
     return match["period_id"].values[0] if not match.empty else None
 
-def reconcile_mwml_charges(bank_charges, ledger_charges):
+def reconcile_mwml_charges(bank_charges, ledger_charges, grouping="Weekly"):
     
     bank = bank_charges.sort_values("date").copy()
     ledger = ledger_charges.sort_values("date").copy()
 
     periods = []
 
-    previous_date = None
+    if grouping == "Weekly":
+        
+        previous_date = None
 
-    # idenitifes periods from ledger
-    for i, row in ledger.iterrows():
+        # idenitifes periods from ledger
+        for i, row in ledger.iterrows():
 
-        ledger_date = extract_date_period(row["description"]) or row["date"]
-        ledger_date = pd.to_datetime(ledger_date)
+            ledger_date = extract_date_period(row["description"]) or row["date"]
+            ledger_date = pd.to_datetime(ledger_date)
 
-        if previous_date is None:
-            period_start = ledger_date.replace(day=1)
-        else:
-            period_start = ledger_date - pd.Timedelta(days=6)
+            if previous_date is None:
+                period_start = ledger_date.replace(day=1)
+            else:
+                period_start = ledger_date - pd.Timedelta(days=6)
 
-        period_end = ledger_date
+            period_end = ledger_date
 
-        periods.append({
-            "period_id": len(periods),
-            "start": period_start,
-            "end": period_end
-        })
+            periods.append({
+                "period_id": len(periods),
+                "start": period_start,
+                "end": period_end
+            })
 
-        previous_date = ledger_date
+            previous_date = ledger_date
 
 
-    periods_df = pd.DataFrame(periods)
+        periods_df = pd.DataFrame(periods)
 
-    # assign period ids to bank and ledger
-    bank["period_id"] = bank["date"].apply(lambda d: assign_period(d, periods_df))
-    ledger["period_id"] = ledger["date"].apply(lambda d: assign_period(d, periods_df))
+        # assign period ids to bank and ledger
+        bank["period_id"] = bank["date"].apply(lambda d: assign_period(d, periods_df))
+        ledger["period_id"] = ledger["date"].apply(lambda d: assign_period(d, periods_df))
 
-    # group bank and ledger rows according to periods and sum amounts
-    bank_grouped = bank.groupby("period_id")["amount"].sum()
-    ledger_grouped = ledger.groupby("period_id")["amount"].sum()
+        # group bank and ledger rows according to periods and sum amounts
+        bank_grouped = bank.groupby("period_id")["amount"].sum()
+        ledger_grouped = ledger.groupby("period_id")["amount"].sum()
 
-    matches = []
-    unmatched = []
+        matches = []
+        unmatched = []
 
-    all_periods = set(bank_grouped.index).union(set(ledger_grouped.index))
+        all_periods = set(bank_grouped.index).union(set(ledger_grouped.index))
 
-    for pid in all_periods:
+        for pid in all_periods:
 
-        period_info = periods_df[periods_df["period_id"] == pid].iloc[0]
+            period_info = periods_df[periods_df["period_id"] == pid].iloc[0]
 
-        bank_total = bank_grouped.get(pid, 0)
-        ledger_total = ledger_grouped.get(pid, 0)
+            bank_total = bank_grouped.get(pid, 0)
+            ledger_total = ledger_grouped.get(pid, 0)
 
-        bank_rows = bank[bank["period_id"] == pid].index.tolist()
-        ledger_rows = ledger[ledger["period_id"] == pid].index.tolist()
+            bank_rows = bank[bank["period_id"] == pid].index.tolist()
+            ledger_rows = ledger[ledger["period_id"] == pid].index.tolist()
 
-        record = {
-            "period_id": pid,
-            "period_start": period_info["start"],
-            "period_end": period_info["end"],
-            "bank_total": bank_total,
-            "ledger_total": ledger_total,
-            "difference": bank_total - ledger_total,
-            "bank_rows": bank_rows,
-            "ledger_rows": ledger_rows
+            record = {
+                "period_id": pid,
+                "period_start": period_info["start"],
+                "period_end": period_info["end"],
+                "bank_total": bank_total,
+                "ledger_total": ledger_total,
+                "difference": bank_total - ledger_total,
+                "bank_rows": bank_rows,
+                "ledger_rows": ledger_rows
+            }
+
+            if bank_total == ledger_total:
+                # print(f"Period {pid} MATCHED: {bank_total} = {ledger_total}")
+                matches.append(record)
+            else:
+                unmatched.append(record)
+        return {
+            "matches": matches,
+            "unmatched": unmatched,
+            "periods": periods_df
+            }
+    elif grouping == "Monthly":
+        # -----------------------------------
+        # CREATE MONTH COLUMN
+        # -----------------------------------
+
+        bank["month"] = bank["date"].dt.to_period("M")
+        ledger["month"] = ledger["date"].dt.to_period("M")
+
+        # -----------------------------------
+        # GROUP BOTH SIDES
+        # -----------------------------------
+
+        bank_grouped = bank.groupby("month")["amount"].sum()
+        ledger_grouped = ledger.groupby("month")["amount"].sum()
+
+        # -----------------------------------
+        # GET ALL MONTHS
+        # -----------------------------------
+
+        all_months = set(bank_grouped.index).union(set(ledger_grouped.index))
+
+        matches = []
+        unmatched = []
+
+        # -----------------------------------
+        # COMPARE TOTALS
+        # -----------------------------------
+
+        for m in all_months:
+
+            bank_total = bank_grouped[m] if m in bank_grouped.index else 0
+            ledger_total = ledger_grouped[m] if m in ledger_grouped.index else 0
+
+            bank_rows = bank[bank["month"] == m].index.tolist()
+            ledger_rows = ledger[ledger["month"] == m].index.tolist()
+
+            record = {
+                "month": str(m),
+                "bank_total": bank_total,
+                "ledger_total": ledger_total,
+                "difference": bank_total - ledger_total,
+                "bank_rows": bank_rows,
+                "ledger_rows": ledger_rows
+            }
+
+            if abs(bank_total - ledger_total) < 1:
+                matches.append(record)
+            else:
+                unmatched.append(record)
+
+        return {
+            "matches": matches,
+            "unmatched": unmatched
         }
 
-        if bank_total == ledger_total:
-            # print(f"Period {pid} MATCHED: {bank_total} = {ledger_total}")
-            matches.append(record)
-        else:
-            unmatched.append(record)
-    return {
-    "matches": matches,
-    "unmatched": unmatched,
-    "periods": periods_df
-    }
+    
 
 def reconcile_msbl_charges(bank_charges, ledger_charges, pd, date_tolerance=2):
 

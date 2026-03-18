@@ -49,8 +49,7 @@ if bank and ledger:
     if group == "MWML":
         charge_grouping = st.selectbox(
             "Please select the bank charge aggregation period for the Ledger",
-            ["Weekly"]
-            # ["AUTO", "Weekly", "Monthly"]
+            ["Weekly", "Monthly"]
         )
 
 
@@ -124,10 +123,12 @@ if bank and ledger:
 
         # separate charges and transactions
         bank_charges = results["unmatched_df1"][results["unmatched_df1"]["description"].apply(is_charge)]
+        unmatched_bank_transactions = results["unmatched_df1"][~results["unmatched_df1"]["description"].apply(is_charge)]
         st.subheader("Bank Charges")
         st.dataframe(bank_charges)
 
         ledger_charges = results["unmatched_df2"][results["unmatched_df2"]["description"].apply(is_charge)]
+        unmatched_ledger_transactions = results["unmatched_df2"][~results["unmatched_df2"]["description"].apply(is_charge)]
         st.subheader("Ledger Charges")
         st.dataframe(ledger_charges)
 
@@ -135,7 +136,8 @@ if bank and ledger:
         if group == "MWML":
             charge_results = reconcile_mwml_charges(
                 bank_charges,
-                ledger_charges
+                ledger_charges,
+                grouping=charge_grouping,
             )
         elif group == "MSBL":
 
@@ -148,53 +150,85 @@ if bank and ledger:
 
 
         st.subheader("Matched Charge Periods")
-
+        st.write("Total Charge Matches Found:", len(charge_results["matches"]))
         if charge_results["matches"]:
-
             matched_charge_display = []
+            if charge_grouping == "Weekly":
+                for m in charge_results["matches"]:
 
-            for m in charge_results["matches"]:
+                    matched_charge_display.append({
+                        "Period": f"{m["period_start"].date()} - {m["period_end"].date()}",
+                        "Ledger Total": m["ledger_total"],
+                        "Bank Total": m["bank_total"],
+                        "Difference": m["difference"],
+                        "Bank Rows": m["bank_rows"],
+                        "Ledger Rows": m["ledger_rows"]
+                    })
+            elif charge_grouping == "Monthly":
+                for m in charge_results["matches"]:
 
-                matched_charge_display.append({
-                    "Period": f"{m["period_start"].date()} - {m["period_end"].date()}",
-                    "Ledger Total": m["ledger_total"],
-                    "Bank Total": m["bank_total"],
-                    "Difference": m["difference"],
-                    "Bank Rows": m["bank_rows"],
-                    "Ledger Rows": m["ledger_rows"]
-                })
+                    matched_charge_display.append({
+                        "Period": m["month"],
+                        "Ledger Total": m["ledger_total"],
+                        "Bank Total": m["bank_total"],
+                        "Difference": m["difference"],
+                        "Bank Rows": m["bank_rows"],
+                        "Ledger Rows": m["ledger_rows"]
+                    })
 
             st.dataframe(matched_charge_display)
 
 
         st.subheader("Unmatched Charge Periods")
-
+        st.write("Total Charge Mis-Matches Found:", len(charge_results["unmatched"]))
         if charge_results["unmatched"]:
 
             unmatched_charge_display = []
+            if charge_grouping == "Weekly":
 
-            for u in charge_results["unmatched"]:
-                unmatched_charge_display.append({
-                    "Period": f"{u["period_start"].date()} - {u["period_end"].date()}",
-                    "Ledger Total": u["ledger_total"],
-                    "Bank Total": u["bank_total"],
-                    "Difference": u["difference"],
-                    "Bank Rows": u["bank_rows"],
-                    "Ledger Rows": u["ledger_rows"]
-                })
+                for u in charge_results["unmatched"]:
+                    unmatched_charge_display.append({
+                        "Period": f"{u["period_start"].date()} - {u["period_end"].date()}",
+                        "Ledger Total": u["ledger_total"],
+                        "Bank Total": u["bank_total"],
+                        "Difference": u["difference"],
+                        "Bank Rows": u["bank_rows"],
+                        "Ledger Rows": u["ledger_rows"]
+                    })
+            elif charge_grouping == "Monthly":
+
+                for u in charge_results["unmatched"]:
+                    unmatched_charge_display.append({
+                        "Period": u["month"],
+                        "Ledger Total": u["ledger_total"],
+                        "Bank Total": u["bank_total"],
+                        "Difference": u["difference"],
+                        "Bank Rows": u["bank_rows"],
+                        "Ledger Rows": u["ledger_rows"]
+                    })
 
             st.dataframe(unmatched_charge_display)
         
 
         
-        st.subheader("Detected Charge Periods")
+        # st.subheader("Detected Charge Periods")
 
-        periods_df = charge_results["periods"].copy()
-        periods_df["Period"] = periods_df.apply(
-            lambda x: f"{x['start'].date()} → {x['end'].date()}",
-            axis=1
-        )
+        # periods_df = charge_results["periods"].copy()
+        # periods_df["Period"] = periods_df.apply(
+        #     lambda x: f"{x['start'].date()} → {x['end'].date()}",
+        #     axis=1
+        # )
 
-        st.dataframe(periods_df[["period_id", "Period"]])
+        # st.dataframe(periods_df[["period_id", "Period"]])
+
+        st.header("Remaining Unmatched Transactions")
+
+        st.subheader("Unmatched Bank Transactions")
+        st.write("Total Remaining Bank Mis-Matches Found:", len(unmatched_bank_transactions))
+        st.dataframe(unmatched_bank_transactions)
+
+        st.subheader("Unmatched Ledger Transactions")
+        st.write("Total Remaining Bank Mis-Matches Found:", len(unmatched_ledger_transactions))
+        st.dataframe(unmatched_ledger_transactions)
 
 
