@@ -1,6 +1,5 @@
 import pandas as pd
 from normalization.name_extractor import extract_date_period
-from datetime import datetime
 def calculate_group_variance(bank_charges, ledger_charges, period):
 
     bank = bank_charges.copy()
@@ -257,97 +256,6 @@ def get_mwml_week(date):
 #         "total_unmatched": len(unmatched_ledger),
 #     }
 
-# def reconcile_mwml_charges(bank_charges, ledger_charges):
-
-#     bank = bank_charges.sort_values("date").copy()
-#     ledger = ledger_charges.sort_values("date").copy()
-
-#     matches = []
-#     unmatched_ledger = []
-#     used_bank_rows = set()
-
-#     previous_date = None
-#     for ledger_idx, ledger_row in ledger.iterrows():
-
-#         ledger_date = extract_date_period(ledger_row["description"])
-#         print("Extracted date:", ledger_date)
-#         ledger_amount = ledger_row["amount"]
-
-#         if ledger_date is None:
-#             ledger_date = ledger_row["date"]
-
-#         ledger_date = pd.to_datetime(ledger_date)
-#         # -----------------------------------
-#         # DEFINE 7-DAY WINDOW
-#         # -----------------------------------
-
-#         period_end = ledger_date
-#         if previous_date is None:
-#             # start of month
-#             period_start = ledger_date.replace(day=1)
-#         else:
-#             period_start = ledger_date - pd.Timedelta(days=6)
-        
-
-#         # -----------------------------------
-#         # GET BANK ROWS IN WINDOW
-#         # -----------------------------------
-
-#         period_rows = bank[
-#             (bank["date"] >= period_start) &
-#             (bank["date"] <= period_end)
-#         ]
-
-#         # optional: avoid reuse
-#         period_rows = period_rows[~period_rows.index.isin(used_bank_rows)]
-
-#         bank_total = period_rows["amount"].sum()
-#         # -----------------------------------
-#         # MATCH CHECK
-#         # -----------------------------------
-
-#         if abs(bank_total - ledger_amount) < 1:
-
-#             matches.append({
-#                 "status": "MATCHED",
-#                 "ledger_index": ledger_idx,
-#                 "ledger_amount": ledger_amount,
-#                 "bank_total": bank_total,
-#                 "difference": bank_total - ledger_amount,
-#                 "bank_rows": period_rows.index.tolist(),
-#                 "period_start": period_start,
-#                 "period_end": period_end
-#             })
-
-#             used_bank_rows.update(period_rows.index)
-
-#         else:
-
-#             unmatched_ledger.append({
-#                 "ledger_index": ledger_idx,
-#                 "ledger_amount": ledger_amount,
-#                 "bank_total": bank_total,
-#                 "difference": bank_total - ledger_amount,
-#                 "bank_rows": period_rows.index.tolist(),
-#                 "period_start": period_start,
-#                 "period_end": period_end
-#             })
-
-#         previous_date = ledger_date
-#     # -----------------------------------
-#     # UNMATCHED BANK ROWS
-#     # -----------------------------------
-
-#     unmatched_bank = bank.index.difference(list(used_bank_rows)).tolist()
-
-#     return {
-#         "matches": matches,
-#         "unmatched_ledger": unmatched_ledger,
-#         "unmatched_bank": unmatched_bank,
-#         "total_matches": len(matches),
-#         "total_unmatched_ledger": len(unmatched_ledger),
-#         "total_unmatched_bank": len(unmatched_bank)
-#     }
 def assign_period(date, periods_df):
     match = periods_df[
         (periods_df["start"] <= date) &
