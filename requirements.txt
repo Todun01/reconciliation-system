@@ -7,3 +7,5 @@ pdfplumber
 scipy
 openai
 dotenv
+xlrd
+lsml

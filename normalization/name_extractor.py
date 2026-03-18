@@ -12,6 +12,32 @@ def get_openai_key():
         return os.getenv("OPENAI_API_KEY")
     
 client = OpenAI(api_key=get_openai_key()) 
+def extract_date_period(text):
+    prompt = f"""
+Extract the date from the following text.
+
+Rules:
+- Identify phrases like "FOR 6TH FEB 2026", "AS AT 13TH FEB 2026".
+- Convert the extracted date into ISO format: YYYY-MM-DD.
+- Ignore all other text.
+- If no date is found, return null.
+
+Text: "{text}"
+
+Output:
+"""
+
+    response = client.chat.completions.create(
+        model="gpt-5-nano",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=1
+    )
+
+    date = response.choices[0].message.content.strip()
+    if date.lower() == "null":
+        return None
+    return date
+
 def generate_regex_from_sample(sample_text):
     """
     Uses AI once to generate a regex pattern that extracts

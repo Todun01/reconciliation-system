@@ -66,7 +66,8 @@ BUZZWORDS = {
     "salary", "wage", "payout", "instant", "settlement",
     "outward", "inward", "nibss", "purchase", "sale", "merchant", "ecommerce",
     "account", "electronic", "nip", "inflow", "outflow", "cr", "dr",
-    "WD", "vat", "naira", "client", "frm", "ac", "zib", "meristem", "limited"
+    "WD", "vat", "naira", "client", "frm", "ac", "zib", "meristem", "limited",
+    "via", "between", "statement"
 }
 GROUP_BUZZWORDS = {
     "MSBL": {"stockbrokers"},
