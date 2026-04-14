@@ -1,30 +1,53 @@
 import pandas as pd
 from ingestion.pdf_parser import extract_pdf_tables
 
+# def detect_header_row(df):
+#     """
+#     Detect the header row by looking for common transaction column keywords.
+#     """
+
+#     header_keywords = ["date", "description", "debit", "credit", "amount", "balance"]
+
+#     for i in range(min(50, len(df))):  # check first 50 rows max
+#         row = df.iloc[i].astype(str).str.lower()
+
+#         matches = sum(
+#             any(keyword in cell for keyword in header_keywords)
+#             for cell in row
+#         )
+
+#         if matches >= 3:  # at least 2 expected header keywords
+#             return i
+
+#     return 0  # fallback
+
 def detect_header_row(df):
-    """
-    Detect the header row by looking for common transaction column keywords.
-    """
+    header_keywords = [
+        "date", "description", "amount", "debit", "credit",
+        "transaction", "details", "balance"
+    ]
 
-    header_keywords = ["date", "description", "debit", "credit", "amount", "balance"]
+    for i in range(min(50, len(df))):
+        row = df.iloc[i]
 
-    for i in range(min(50, len(df))):  # check first 50 rows max
-        row = df.iloc[i].astype(str).str.lower()
+        # 🔑 CRITICAL FIX: force every cell to safe string
+        row = row.fillna("").astype(str).str.lower()
 
-        matches = sum(
-            any(keyword in cell for keyword in header_keywords)
-            for cell in row
-        )
+        matches = 0
+        for cell in row:
+            for keyword in header_keywords:
+                if keyword in cell:
+                    matches += 1
+                    break
 
-        if matches >= 3:  # at least 2 expected header keywords
+        if matches >= 2:
             return i
 
-    return 0  # fallback
-
+    return 0
 def read_csv_smart(file):
 
     # Load without assuming header
-    df_raw = pd.read_csv(file, header=None)
+    df_raw = pd.read_csv(file, header=None, dtype=str)
 
     header_row = detect_header_row(df_raw)
 
